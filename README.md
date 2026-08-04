@@ -1,8 +1,14 @@
 # Bar Chart Card
 
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![GitHub Release](https://img.shields.io/github/v/release/Wolk9/lovelace-bar-chart-card)](https://github.com/Wolk9/lovelace-bar-chart-card/releases)
+[![License](https://img.shields.io/github/license/Wolk9/lovelace-bar-chart-card)](LICENSE)
+
 A minimal Home Assistant Lovelace card that shows one or more entities as
 labelled horizontal bars in a single card — handy for comparing values
 across rooms/devices (e.g. temperature per room) at a glance.
+
+![Bar Chart Card screenshot](docs/screenshot.png)
 
 ## Installation
 
