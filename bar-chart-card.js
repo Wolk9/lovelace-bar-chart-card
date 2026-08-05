@@ -11,7 +11,12 @@ class BarChartCard extends HTMLElement {
     this._outdoorEntity = config.outdoor_entity ?? null;
     this._trendEnabled = !!config.trend;
     this._trendThreshold = config.trend_threshold ?? 0.1;
+    this._decimals = config.decimals ?? null;
     this._trendCache = this._trendCache || {};
+  }
+
+  _round(val) {
+    return this._decimals !== null ? Number(val.toFixed(this._decimals)) : val;
   }
 
   set hass(hass) {
@@ -73,26 +78,31 @@ class BarChartCard extends HTMLElement {
     if (!this._hass || !this.config) return;
 
     const outdoorState = this._outdoorEntity ? this._hass.states[this._outdoorEntity] : null;
-    const outdoorVal = outdoorState ? parseFloat(outdoorState.state) : null;
+    let outdoorVal = outdoorState ? parseFloat(outdoorState.state) : null;
     const hasOutdoor = outdoorVal !== null && !isNaN(outdoorVal);
+    if (hasOutdoor) outdoorVal = this._round(outdoorVal);
 
     let rowsData = this.config.entities.map((ent) => {
       const st = this._hass.states[ent.entity];
-      const val = st ? parseFloat(st.state) : null;
+      let val = st ? parseFloat(st.state) : null;
       const valid = val !== null && !isNaN(val);
+      if (valid) val = this._round(val);
       const pct = valid
         ? Math.max(0, Math.min(100, ((val - this._min) / (this._max - this._min)) * 100))
         : 0;
       const color = ent.color || 'var(--primary-color)';
       const name = ent.name || (st ? st.attributes.friendly_name : ent.entity);
-      const display = valid ? `${val}${this._unit}` : '—';
+      const display = valid
+        ? `${this._decimals !== null ? val.toFixed(this._decimals) : val}${this._unit}`
+        : '—';
       const showOpenWindow = hasOutdoor && valid && outdoorVal < val && !ent.outdoor;
 
       let trend = null;
       if (this._trendEnabled && valid) {
         const cached = this._trendCache[ent.entity];
         if (cached && cached.startVal !== null) {
-          const diff = val - cached.startVal;
+          const startVal = this._round(cached.startVal);
+          const diff = val - startVal;
           if (diff > this._trendThreshold) trend = 'up';
           else if (diff < -this._trendThreshold) trend = 'down';
           else trend = 'flat';

@@ -37,6 +37,7 @@ across rooms/devices (e.g. temperature per room) at a glance.
 | `outdoor_entity` | string | | Entity ID of an outdoor temperature sensor. Rows whose value is higher than this sensor get an open-window icon (🪟), suggesting you could air out instead of cooling actively |
 | `trend` | boolean | `false` | Show a trend arrow (↗/↘/→) comparing each entity's current value to its value 15 minutes ago |
 | `trend_threshold` | number | `0.1` | Minimum change over 15 minutes before a row counts as rising/falling instead of steady |
+| `decimals` | number | | Round values to this many decimal places. Applied consistently to the displayed value, `sort`, the open-window comparison, and the trend comparison. Omit to use the raw, unrounded value everywhere (previous behavior) |
 | `entities` | list | **required** | List of entities to show, see below |
 
 ### `entities` options
@@ -59,6 +60,7 @@ unit: "°C"
 sort: desc
 outdoor_entity: sensor.outdoor_temperature
 trend: true
+decimals: 1
 entities:
   - entity: sensor.living_room_temperature
     name: Living Room
