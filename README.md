@@ -33,6 +33,10 @@ across rooms/devices (e.g. temperature per room) at a glance.
 | `min` | number | `0` | Minimum value for the bar scale |
 | `max` | number | `100` | Maximum value for the bar scale |
 | `unit` | string | `''` | Unit suffix shown after each value |
+| `sort` | string | | `asc` (coolest/lowest on top) or `desc` (warmest/highest on top). Omit to keep the configured order |
+| `outdoor_entity` | string | | Entity ID of an outdoor temperature sensor. Rows whose value is higher than this sensor get an open-window icon (🪟), suggesting you could air out instead of cooling actively |
+| `trend` | boolean | `false` | Show a trend arrow (↗/↘/→) comparing each entity's current value to its value 15 minutes ago |
+| `trend_threshold` | number | `0.1` | Minimum change over 15 minutes before a row counts as rising/falling instead of steady |
 | `entities` | list | **required** | List of entities to show, see below |
 
 ### `entities` options
@@ -51,6 +55,9 @@ title: Temperature comparison
 min: 15
 max: 40
 unit: "°C"
+sort: desc
+outdoor_entity: sensor.outdoor_temperature
+trend: true
 entities:
   - entity: sensor.living_room_temperature
     name: Living Room
