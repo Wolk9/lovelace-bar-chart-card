@@ -86,7 +86,7 @@ class BarChartCard extends HTMLElement {
       const color = ent.color || 'var(--primary-color)';
       const name = ent.name || (st ? st.attributes.friendly_name : ent.entity);
       const display = valid ? `${val}${this._unit}` : '—';
-      const showOpenWindow = hasOutdoor && valid && outdoorVal < val;
+      const showOpenWindow = hasOutdoor && valid && outdoorVal < val && !ent.outdoor;
 
       let trend = null;
       if (this._trendEnabled && valid) {

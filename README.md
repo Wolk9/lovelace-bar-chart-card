@@ -46,6 +46,7 @@ across rooms/devices (e.g. temperature per room) at a glance.
 | `entity` | string | Yes | Entity ID |
 | `name` | string | No | Overrides the displayed name (defaults to friendly name) |
 | `color` | string | No | Bar color (hex or CSS color, defaults to `var(--primary-color)`) |
+| `outdoor` | boolean | No | Set `true` for rows that are themselves an outdoor/exterior sensor (e.g. a garden reading with no window) — suppresses the open-window icon for that row regardless of `outdoor_entity`. Default `false` |
 
 ### Example
 
@@ -68,4 +69,8 @@ entities:
   - entity: sensor.bedroom_temperature
     name: Bedroom
     color: "#6d4c41"
+  - entity: sensor.backyard_temperature
+    name: Backyard
+    color: "#43a047"
+    outdoor: true
 ```
