@@ -67,6 +67,16 @@ class BarChartCard extends HTMLElement {
     return minTemp !== null ? this._round(minTemp) : null;
   }
 
+  _resolveTarget(ent) {
+    let target = null;
+    if (typeof ent.target === 'number') {
+      target = ent.target;
+    } else if (ent.target_entity) {
+      target = this._resolveTempValue(ent.target_entity);
+    }
+    return target !== null ? this._round(target) : null;
+  }
+
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
@@ -147,6 +157,16 @@ class BarChartCard extends HTMLElement {
       const showOpenWindow =
         hasOutdoor && valid && outdoorVal < val && !ent.outdoor && (minTemp === null || val >= minTemp);
 
+      const targetVal = this._resolveTarget(ent);
+      const targetPct =
+        targetVal !== null
+          ? Math.max(0, Math.min(100, ((targetVal - this._min) / (this._max - this._min)) * 100))
+          : null;
+      const targetDisplay = targetVal !== null
+        ? `${this._decimals !== null ? targetVal.toFixed(this._decimals) : targetVal}${this._unit}`
+        : null;
+      const targetColor = ent.target_color || 'var(--primary-text-color)';
+
       let trend = null;
       if (this._trendEnabled && valid) {
         const cached = this._trendCache[ent.entity];
@@ -159,7 +179,7 @@ class BarChartCard extends HTMLElement {
         }
       }
 
-      return { val, valid, pct, color, name, display, showOpenWindow, trend };
+      return { val, valid, pct, color, name, display, showOpenWindow, trend, targetPct, targetDisplay, targetColor };
     });
 
     if (this._sort === 'asc' || this._sort === 'desc') {
@@ -185,6 +205,7 @@ class BarChartCard extends HTMLElement {
                 <span class="value">${row.display}${iconsHtml(row)}</span>
                 <div class="bar-bg-v" style="height:${this._height}">
                   <div class="bar-v" style="height:${row.pct}%;background:${row.color}"></div>
+                  ${row.targetPct !== null ? `<div class="target-marker-v" style="bottom:${row.targetPct}%;background:${row.targetColor}" title="Streefwaarde: ${row.targetDisplay}"></div>` : ''}
                 </div>
                 <span class="name">${row.name}</span>
               </div>`)
@@ -203,6 +224,7 @@ class BarChartCard extends HTMLElement {
                 </div>
                 <div class="bar-bg">
                   <div class="bar" style="width:${row.pct}%;background:${row.color}"></div>
+                  ${row.targetPct !== null ? `<div class="target-marker" style="left:${row.targetPct}%;background:${row.targetColor}" title="Streefwaarde: ${row.targetDisplay}"></div>` : ''}
                 </div>
               </div>`)
             .join('');
@@ -222,8 +244,10 @@ class BarChartCard extends HTMLElement {
             .trend-up { color: var(--error-color, #e53935); }
             .trend-down { color: var(--info-color, #039be5); }
             .trend-flat { color: var(--secondary-text-color); }
-            .bar-bg { background: var(--divider-color, #e0e0e0); border-radius: 6px; height: 12px; overflow: hidden; }
+            .bar-bg { position:relative; background: var(--divider-color, #e0e0e0); border-radius: 6px; height: 12px; overflow: hidden; }
             .bar { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
+            .target-marker { position:absolute; top:0; bottom:0; width:2px; transform:translateX(-50%); }
+            .target-marker-v { position:absolute; left:0; right:0; height:2px; transform:translateY(50%); }
             .columns { display:flex; justify-content:space-around; align-items:flex-end; margin: 10px 16px; gap: 8px; }
             .col { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
             .col .value { display:inline-flex; align-items:center; gap:4px; font-size:14px; font-weight:500; color: var(--primary-text-color); margin-bottom:6px; white-space:nowrap; }
