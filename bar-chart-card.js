@@ -244,7 +244,7 @@ class BarChartCard extends HTMLElement {
             .trend-up { color: var(--error-color, #e53935); }
             .trend-down { color: var(--info-color, #039be5); }
             .trend-flat { color: var(--secondary-text-color); }
-            .bar-bg { position:relative; background: var(--divider-color, #e0e0e0); border-radius: 6px; height: 12px; overflow: hidden; }
+            .bar-bg { position:relative; background: var(--divider-color, #e0e0e0); border-radius: 6px; height: 12px; overflow: visible; }
             .bar { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
             .target-marker { position:absolute; top:0; bottom:0; width:2px; transform:translateX(-50%); }
             .target-marker-v { position:absolute; left:0; right:0; height:2px; transform:translateY(50%); }
