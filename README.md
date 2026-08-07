@@ -80,7 +80,7 @@ A row's minimum temperature is resolved in this order: its own `min_temp` → it
 
 A row's colour is resolved in this order: its own `color` → its own `severity` → the card-wide `severity` → default (`var(--primary-color)`).
 
-A row's target marker is resolved in this order: its own `target` → its own `target_entity` → no marker.
+A row's target marker is resolved in this order: its own `target` → its own `target_entity` → no marker. The marker also gets a small text label showing its value — above the bar in horizontal mode, to the right of the bar in vertical mode.
 
 ### Example
 

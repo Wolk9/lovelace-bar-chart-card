@@ -205,7 +205,7 @@ class BarChartCard extends HTMLElement {
                 <span class="value">${row.display}${iconsHtml(row)}</span>
                 <div class="bar-bg-v" style="height:${this._height}">
                   <div class="bar-v" style="height:${row.pct}%;background:${row.color}"></div>
-                  ${row.targetPct !== null ? `<div class="target-marker-v" style="bottom:${row.targetPct}%;background:${row.targetColor}" title="Streefwaarde: ${row.targetDisplay}"></div>` : ''}
+                  ${row.targetPct !== null ? `<div class="target-marker-v" style="bottom:${row.targetPct}%;background:${row.targetColor}" title="Streefwaarde: ${row.targetDisplay}"></div><span class="target-label-v" style="bottom:${row.targetPct}%">${row.targetDisplay}</span>` : ''}
                 </div>
                 <span class="name">${row.name}</span>
               </div>`)
@@ -222,9 +222,9 @@ class BarChartCard extends HTMLElement {
                     ${row.trend ? `<ha-icon class="icon-sm trend-${row.trend}" icon="${trendIcon[row.trend]}" title="Trend afgelopen kwartier"></ha-icon>` : ''}
                   </span>
                 </div>
-                <div class="bar-bg">
+                <div class="bar-bg"${row.targetPct !== null ? ' style="margin-top:14px"' : ''}>
                   <div class="bar" style="width:${row.pct}%;background:${row.color}"></div>
-                  ${row.targetPct !== null ? `<div class="target-marker" style="left:${row.targetPct}%;background:${row.targetColor}" title="Streefwaarde: ${row.targetDisplay}"></div>` : ''}
+                  ${row.targetPct !== null ? `<div class="target-marker" style="left:${row.targetPct}%;background:${row.targetColor}" title="Streefwaarde: ${row.targetDisplay}"></div><span class="target-label" style="left:${row.targetPct}%">${row.targetDisplay}</span>` : ''}
                 </div>
               </div>`)
             .join('');
@@ -248,10 +248,12 @@ class BarChartCard extends HTMLElement {
             .bar { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
             .target-marker { position:absolute; top:0; bottom:0; width:2px; transform:translateX(-50%); }
             .target-marker-v { position:absolute; left:0; right:0; height:2px; transform:translateY(50%); }
+            .target-label { position:absolute; bottom:100%; margin-bottom:2px; transform:translateX(-50%); font-size:10px; line-height:1; color: var(--secondary-text-color); white-space:nowrap; }
+            .target-label-v { position:absolute; left:100%; margin-left:4px; transform:translateY(50%); font-size:10px; line-height:1; color: var(--secondary-text-color); white-space:nowrap; }
             .columns { display:flex; justify-content:space-around; align-items:flex-end; margin: 10px 16px; gap: 8px; }
             .col { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
             .col .value { display:inline-flex; align-items:center; gap:4px; font-size:14px; font-weight:500; color: var(--primary-text-color); margin-bottom:6px; white-space:nowrap; }
-            .bar-bg-v { position:relative; width:24px; background: var(--divider-color, #e0e0e0); border-radius:6px; overflow:hidden; }
+            .bar-bg-v { position:relative; width:24px; background: var(--divider-color, #e0e0e0); border-radius:6px; overflow:visible; }
             .bar-v { position:absolute; bottom:0; left:0; width:100%; border-radius:6px; transition:height 0.3s ease; }
             .col .name { font-size:12px; color: var(--secondary-text-color); margin-top:6px; text-align:center; }
           </style>
