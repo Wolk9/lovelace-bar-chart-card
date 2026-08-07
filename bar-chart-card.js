@@ -13,11 +13,36 @@ class BarChartCard extends HTMLElement {
     this._trendThreshold = config.trend_threshold ?? 0.1;
     this._decimals = config.decimals ?? null;
     this._defaultMinTemp = config.default_min_temp ?? null;
+    this._severity = config.severity ?? null;
+    this._direction = config.direction === 'vertical' ? 'vertical' : 'horizontal';
+    this._height = config.height ?? '150px';
     this._trendCache = this._trendCache || {};
   }
 
   _round(val) {
     return this._decimals !== null ? Number(val.toFixed(this._decimals)) : val;
+  }
+
+  _resolveSeverityColor(val, severityList) {
+    if (!Array.isArray(severityList)) return null;
+    for (const rule of severityList) {
+      if (val >= rule.from && val <= rule.to) return rule.color;
+    }
+    return null;
+  }
+
+  _resolveColor(ent, val, valid) {
+    if (ent.color) return ent.color;
+    if (valid) {
+      if (ent.severity) {
+        return this._resolveSeverityColor(val, ent.severity) ?? 'var(--primary-color)';
+      }
+      if (this._severity) {
+        const color = this._resolveSeverityColor(val, this._severity);
+        if (color) return color;
+      }
+    }
+    return 'var(--primary-color)';
   }
 
   _resolveTempValue(entityId) {
@@ -113,7 +138,7 @@ class BarChartCard extends HTMLElement {
       const pct = valid
         ? Math.max(0, Math.min(100, ((val - this._min) / (this._max - this._min)) * 100))
         : 0;
-      const color = ent.color || 'var(--primary-color)';
+      const color = this._resolveColor(ent, val, valid);
       const name = ent.name || (st ? st.attributes.friendly_name : ent.entity);
       const display = valid
         ? `${this._decimals !== null ? val.toFixed(this._decimals) : val}${this._unit}`
@@ -148,24 +173,39 @@ class BarChartCard extends HTMLElement {
     }
 
     const trendIcon = { up: 'mdi:trending-up', down: 'mdi:trending-down', flat: 'mdi:trending-neutral' };
+    const iconsHtml = (row) => `
+      ${row.showOpenWindow ? '<ha-icon class="icon-sm open-window" icon="mdi:window-open-variant" title="Buiten kouder dan binnen"></ha-icon>' : ''}
+      ${row.trend ? `<ha-icon class="icon-sm trend-${row.trend}" icon="${trendIcon[row.trend]}" title="Trend afgelopen kwartier"></ha-icon>` : ''}`;
 
-    const rows = rowsData
-      .map((row) => `
-        <div class="row">
-          <div class="label">
-            <span class="name">
-              ${row.showOpenWindow ? '<ha-icon class="icon-sm open-window" icon="mdi:window-open-variant" title="Buiten kouder dan binnen"></ha-icon>' : ''}${row.name}
-            </span>
-            <span class="value">
-              ${row.display}
-              ${row.trend ? `<ha-icon class="icon-sm trend-${row.trend}" icon="${trendIcon[row.trend]}" title="Trend afgelopen kwartier"></ha-icon>` : ''}
-            </span>
-          </div>
-          <div class="bar-bg">
-            <div class="bar" style="width:${row.pct}%;background:${row.color}"></div>
-          </div>
-        </div>`)
-      .join('');
+    const content =
+      this._direction === 'vertical'
+        ? `<div class="columns">${rowsData
+            .map((row) => `
+              <div class="col">
+                <span class="value">${row.display}${iconsHtml(row)}</span>
+                <div class="bar-bg-v" style="height:${this._height}">
+                  <div class="bar-v" style="height:${row.pct}%;background:${row.color}"></div>
+                </div>
+                <span class="name">${row.name}</span>
+              </div>`)
+            .join('')}</div>`
+        : rowsData
+            .map((row) => `
+              <div class="row">
+                <div class="label">
+                  <span class="name">
+                    ${row.showOpenWindow ? '<ha-icon class="icon-sm open-window" icon="mdi:window-open-variant" title="Buiten kouder dan binnen"></ha-icon>' : ''}${row.name}
+                  </span>
+                  <span class="value">
+                    ${row.display}
+                    ${row.trend ? `<ha-icon class="icon-sm trend-${row.trend}" icon="${trendIcon[row.trend]}" title="Trend afgelopen kwartier"></ha-icon>` : ''}
+                  </span>
+                </div>
+                <div class="bar-bg">
+                  <div class="bar" style="width:${row.pct}%;background:${row.color}"></div>
+                </div>
+              </div>`)
+            .join('');
 
     if (!this.content) {
       this.innerHTML = `
@@ -184,14 +224,23 @@ class BarChartCard extends HTMLElement {
             .trend-flat { color: var(--secondary-text-color); }
             .bar-bg { background: var(--divider-color, #e0e0e0); border-radius: 6px; height: 12px; overflow: hidden; }
             .bar { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
+            .columns { display:flex; justify-content:space-around; align-items:flex-end; margin: 10px 16px; gap: 8px; }
+            .col { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
+            .col .value { display:inline-flex; align-items:center; gap:4px; font-size:14px; font-weight:500; color: var(--primary-text-color); margin-bottom:6px; white-space:nowrap; }
+            .bar-bg-v { position:relative; width:24px; background: var(--divider-color, #e0e0e0); border-radius:6px; overflow:hidden; }
+            .bar-v { position:absolute; bottom:0; left:0; width:100%; border-radius:6px; transition:height 0.3s ease; }
+            .col .name { font-size:12px; color: var(--secondary-text-color); margin-top:6px; text-align:center; }
           </style>
         </ha-card>`;
       this.content = this.querySelector('.card-content');
     }
-    this.content.innerHTML = rows;
+    this.content.innerHTML = content;
   }
 
   getCardSize() {
+    if (this._direction === 'vertical') {
+      return 1 + Math.ceil((parseInt(this._height, 10) || 150) / 50);
+    }
     return 1 + (this.config?.entities?.length || 0);
   }
 
@@ -211,5 +260,5 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'bar-chart-card',
   name: 'Bar Chart Card',
-  description: 'Simple horizontal bar comparison card for multiple entities in one card',
+  description: 'Simple horizontal or vertical bar comparison card for multiple entities in one card',
 });
