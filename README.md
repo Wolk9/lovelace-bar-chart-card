@@ -38,6 +38,7 @@ across rooms/devices (e.g. temperature per room) at a glance.
 | `trend` | boolean | `false` | Show a trend arrow (↗/↘/→) comparing each entity's current value to its value 15 minutes ago |
 | `trend_threshold` | number | `0.1` | Minimum change over 15 minutes before a row counts as rising/falling instead of steady |
 | `decimals` | number | | Round values to this many decimal places. Applied consistently to the displayed value, `sort`, the open-window comparison, and the trend comparison. Omit to use the raw, unrounded value everywhere (previous behavior) |
+| `default_min_temp` | number | | Fallback minimum temperature (see `min_temp` below) for any row that doesn't set its own `min_temp`/`min_temp_entity`. Rows with `outdoor: true` never use this |
 | `entities` | list | **required** | List of entities to show, see below |
 
 ### `entities` options
@@ -48,6 +49,10 @@ across rooms/devices (e.g. temperature per room) at a glance.
 | `name` | string | No | Overrides the displayed name (defaults to friendly name) |
 | `color` | string | No | Bar color (hex or CSS color, defaults to `var(--primary-color)`) |
 | `outdoor` | boolean | No | Set `true` for rows that are themselves an outdoor/exterior sensor (e.g. a garden reading with no window) — suppresses the open-window icon for that row regardless of `outdoor_entity`. Default `false` |
+| `min_temp` | number | No | Fixed minimum temperature to keep in this room. Below this value the open-window icon never shows, even if it's colder outside — takes priority over `min_temp_entity` and `default_min_temp` |
+| `min_temp_entity` | string | No | Entity ID to read the minimum temperature from dynamically instead of a fixed number — handy when each room has its own thermostat. For a `climate.*` entity this reads its target temperature (the `temperature` attribute, not its `state` which is the HVAC mode); for any other entity it reads `state` |
+
+A row's minimum temperature is resolved in this order: its own `min_temp` → its own `min_temp_entity` → the card's `default_min_temp` → no minimum. Rows with `outdoor: true` skip this entirely — they never show the open-window icon anyway.
 
 ### Example
 
@@ -61,13 +66,16 @@ sort: desc
 outdoor_entity: sensor.outdoor_temperature
 trend: true
 decimals: 1
+default_min_temp: 18
 entities:
   - entity: sensor.living_room_temperature
     name: Living Room
     color: "#e53935"
+    min_temp_entity: climate.living_room_thermostat
   - entity: sensor.office_temperature
     name: Office
     color: "#fb8c00"
+    min_temp: 20
   - entity: sensor.bedroom_temperature
     name: Bedroom
     color: "#6d4c41"

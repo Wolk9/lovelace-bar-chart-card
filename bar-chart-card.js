@@ -12,11 +12,34 @@ class BarChartCard extends HTMLElement {
     this._trendEnabled = !!config.trend;
     this._trendThreshold = config.trend_threshold ?? 0.1;
     this._decimals = config.decimals ?? null;
+    this._defaultMinTemp = config.default_min_temp ?? null;
     this._trendCache = this._trendCache || {};
   }
 
   _round(val) {
     return this._decimals !== null ? Number(val.toFixed(this._decimals)) : val;
+  }
+
+  _resolveTempValue(entityId) {
+    const st = this._hass.states[entityId];
+    if (!st) return null;
+    const raw = entityId.startsWith('climate.')
+      ? (st.attributes.temperature ?? st.attributes.target_temp_low)
+      : st.state;
+    const v = parseFloat(raw);
+    return isNaN(v) ? null : v;
+  }
+
+  _resolveMinTemp(ent) {
+    let minTemp = null;
+    if (typeof ent.min_temp === 'number') {
+      minTemp = ent.min_temp;
+    } else if (ent.min_temp_entity) {
+      minTemp = this._resolveTempValue(ent.min_temp_entity);
+    } else if (this._defaultMinTemp !== null) {
+      minTemp = this._defaultMinTemp;
+    }
+    return minTemp !== null ? this._round(minTemp) : null;
   }
 
   set hass(hass) {
@@ -95,7 +118,9 @@ class BarChartCard extends HTMLElement {
       const display = valid
         ? `${this._decimals !== null ? val.toFixed(this._decimals) : val}${this._unit}`
         : '—';
-      const showOpenWindow = hasOutdoor && valid && outdoorVal < val && !ent.outdoor;
+      const minTemp = !ent.outdoor ? this._resolveMinTemp(ent) : null;
+      const showOpenWindow =
+        hasOutdoor && valid && outdoorVal < val && !ent.outdoor && (minTemp === null || val >= minTemp);
 
       let trend = null;
       if (this._trendEnabled && valid) {
